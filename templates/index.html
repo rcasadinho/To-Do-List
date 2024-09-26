@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>App Gestor de Tarefas</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.5.2/dist/sketchy/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'style.css') }}">
+    <link hr§ef="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <link rel="manifest" href="{{ url_for('manifest') }}">
+    <meta name="theme-color" content="#000000">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=2">
+    <script src="{{ url_for('static', filename='service-worker.js') }}?v=2"></script>
+
+</head>
+<body>
+    <h1 class="display-4 text-center mt-4 titulo">To Do List</h1>
+    <div class="row">
+        <div class="col-md-4 offset-md-4 my-auto">
+            <div class="card">
+                <div class="card-header">
+                    <form action="/criar-tarefa" method="post">
+                        <div class="form-group">
+                            <input type="text" name="conteudo_tarefa" placeholder="Tarefa" class="form-control" autofocus>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">
+                            Save
+                        </button>
+                    </form>
+                </div>
+            </div>
+        <div class="card-body">
+            <ul class="list-group">
+                {% for tarefa in lista_de_tarefas %}
+                <li class="list-group-item">
+                    <span class="{% if tarefa.feita==true %} tarefa_feita {% endif %}">
+                        {{tarefa.conteudo}}
+                    </span>
+                    <a href="/tarefa-feita/{{tarefa.id}}" style="text-decoration:none">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" fill="green" class="bi bi-check2-square" viewBox="0 0 16 16">
+                            <path d="M3 14.5A1.5 1.5 0 0 1 1.5 13V3A1.5 1.5 0 0 1 3 1.5h8a.5.5 0 0 1 0 1H3a.5.5 0 0 0-.5.5v10a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5V8a.5.5 0 0 1 1 0v5a1.5 1.5 0 0 1-1.5 1.5z"/>
+                            <path d="m8.354 10.354 7-7a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0"/>
+                        </svg>
+                    </a>
+                    <a href="/eliminar-tarefa/{{tarefa.id}}" style="text-decoration:none">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" fill="red" class="bi bi-trash" viewBox="0 0 16 16">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                        </svg>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    </div>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+                console.log('Service Worker registrado com sucesso:', registration);
+
+                // Verificar se há uma nova versão do Service Worker
+                if (registration.waiting) {
+                    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                }
+
+                registration.onupdatefound = () => {
+                    const installingWorker = registration.installing;
+                    if (installingWorker) {
+                        installingWorker.onstatechange = () => {
+                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('Novo conteúdo disponível; atualize a página.');
+                                // Notificar o usuário sobre a atualização
+                                if (confirm('Há uma nova versão disponível. Deseja atualizar?')) {
+                                    window.location.reload();
+                                }
+                            }
+                        };
+                    }
+                };
+            }).catch((error) => {
+                console.log('Falha ao registrar o Service Worker:', error);
+            });
+        }
+    </script>
+</body>
+</html>
